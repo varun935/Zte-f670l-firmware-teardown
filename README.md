@@ -176,7 +176,9 @@ CspHardCodeParamGet("/etc/hardcodefile/dataprotocol", "DefAESCBCIV", buf, 200); 
 strncpy(iv_out, buf, iv_len - 1);
 ```
 
-> *Screenshot placeholder:* `images/f1_cspd_keyderiv.png` — decompiled `PdtDBSetUserCfgAESCBCEncryKey`.
+<img width="1600" height="860" alt="image" src="https://github.com/user-attachments/assets/d126cdc5-ceae-40e4-8348-2ad522d62a99" />
+
+
 
 - **Key** = device ID (tag `0x881`, the serial suffix) **+** MAC (tag `0x100`), both printed on the label.
 - **IV** = `DefAESCBCIV`, a fixed value (`ZTE%FN$GponNJ025`) stored in the firmware and identical on every unit.
@@ -200,7 +202,8 @@ if (flag == "1") {                                   // PATH A — factory mode:
 return (result == 0) ? AUTH_OK : AUTH_FAIL;
 ```
 
-> *Screenshot placeholder:* `images/f2_httpd_backdoor.png` — decompiled `doWebCheckAuth`.
+<img width="1600" height="855" alt="image" src="https://github.com/user-attachments/assets/16ac170c-f50b-4b30-a054-b898bc016c55" />
+
 
 When the factory-mode flag (`tag 0xb01`) is set, authentication ignores the owner's admin password entirely and accepts a **hardcoded credential compiled into the binary** — identical across the fleet and extractable from the firmware. The factory endpoint's step sequence sets that flag, so a LAN-adjacent attacker can flip the gate and walk through it to telnet/root. The comparison is a plaintext `strcmp` (no hashing, no constant-time check).
 
@@ -222,7 +225,8 @@ do {
 } while (more);
 ```
 
-> *Screenshot placeholder:* `images/f3_libhardcode_decry.png` — decompiled `CspHardCodeDecry`.
+<img width="1600" height="857" alt="image" src="https://github.com/user-attachments/assets/d83b6c64-40a1-499f-95f2-200f91b758c3" />
+
 
 The decryption key is read from **`/etc/hardcode`**, a file shipped *inside the same firmware image*. Encrypting secrets with a key you distribute alongside them provides no protection: `zte_hardcode_dump.py` (reading `/etc/hardcode` as the root key) decrypts the entire store. Recovered contents included the config IV (confirming *F1*), default service passwords, and TLS material (see *F4*/*F6*).
 
