@@ -81,7 +81,7 @@ The board has an unpopulated 4-pin header but no silkscreen labels. I identified
 - **TX** — voltage flickers during the first seconds of boot (the log streaming out).
 - **RX** — the remaining quiet pin.
 
-I didn't have a dedicated USB-TTL adapter on hand. Rather than improvise something unsafe (cut USB cable, 5 V GPIO), I used a friend's **ESP-01 flashing adapter**, which is simply a CH340 USB-to-TTL bridge with an ESP socket — a perfect 3.3 V substitute.
+I didn't have a dedicated USB-TTL adapter on hand. Rather than improvise something unsafe (cut USB cable, 5 V GPIO), I used a **ESP-01 flashing adapter**, which is simply a CH340 USB-to-TTL bridge with an ESP socket — a perfect 3.3 V substitute.
 
 **First failure:** I could read the boot log but couldn't type. The cause was a wrong assumption about the header order — the real layout was `VCC-TX-RX-GND`, not what I'd guessed, so my transmit line was on the wrong pad. A loopback test on the adapter (bridging its own TX↔RX) confirmed the adapter was fine and isolated the fault to the wiring. Correcting the pinout fixed it. Console settings: **115200 8N1**.
 
@@ -137,8 +137,6 @@ The practical lesson: my 3-wire hookup has **no hardware flow control**, so a si
 - Dump in bounded chunks rather than one marathon stream.
 - Capture headless with a `pyserial` script (reads straight to disk, far faster FIFO drain than a scrolling terminal).
 - Reconstruct by absolute address, then re-dump only the specific gap ranges and merge.
-
-After a power cut and a laptop-suspend incident mid-dump, the final merged rootfs reconstructed with **0 missing bytes** (verified against the expected partition size).
 
 ### 8. Filesystem extraction
 
