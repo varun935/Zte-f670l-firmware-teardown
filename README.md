@@ -85,13 +85,22 @@ I didn't have a dedicated USB-TTL adapter on hand. Rather than improvise somethi
 
 **First failure:** I could read the boot log but couldn't type. The cause was a wrong assumption about the header order — the real layout was `VCC-TX-RX-GND`, not what I'd guessed, so my transmit line was on the wrong pad. A loopback test on the adapter (bridging its own TX↔RX) confirmed the adapter was fine and isolated the fault to the wiring. Correcting the pinout fixed it. Console settings: **115200 8N1**.
 
+<img width="1600" height="1204" alt="image" src="https://github.com/user-attachments/assets/822b70b3-d893-4d27-90cc-adb5f602d420" />
+
+
 ### 2. Reading the boot ROM & U-Boot
 
 With the console live I captured the full boot sequence, which identified the SoC, the Micron SPI-NAND, and the firmware version, and showed an **interruptible, unprotected U-Boot** (`Hit any key to stop autoboot`). Dropping to the `=>` prompt and reading the environment revealed how the kernel is loaded (`bootcmd` builds the kernel command line and `bootm`s a JFFS2-resident `uImage`).
 
+<img width="1917" height="1024" alt="image" src="https://github.com/user-attachments/assets/7f57f13d-caaf-4fdf-8d8a-5805771fa4f0" />
+
+
 ### 3. The locked serial login (failed path)
 
 The Linux serial login (`F670L login:`) rejected every credential I tried — `root/root`, `root/Zte521`, the GPON serial, the device EN, and other published ZTE defaults. At this point I did not yet know the root password was a **static hash baked into the firmware** (confirmed later in *F5*), unrelated to any value on the sticker. The control held; guessing was a dead end.
+
+<img width="1600" height="856" alt="image" src="https://github.com/user-attachments/assets/882c4be9-285d-4df6-9f81-f437c749de0b" />
+
 
 ### 4. Bootloader shell injection (failed path)
 
@@ -138,6 +147,9 @@ The practical lesson: my 3-wire hookup has **no hardware flow control**, so a si
 - Capture headless with a `pyserial` script (reads straight to disk, far faster FIFO drain than a scrolling terminal).
 - Reconstruct by absolute address, then re-dump only the specific gap ranges and merge.
 
+<img width="1600" height="857" alt="image" src="https://github.com/user-attachments/assets/ff0e9689-94b1-4064-bee5-0234d96e96c2" />
+
+
 ### 8. Filesystem extraction
 
 The rootfs is JFFS2; [`jefferson`](https://github.com/onekey-sec/jefferson) extracted **1701 files** — a full BusyBox/uClibc userland with a Lua web backend, MediaTek wireless stack, and ZTE service daemons.
@@ -149,6 +161,9 @@ Telnet (port 23) was ACL-filtered on the LAN segment, but the web endpoint on po
 ### 10. Persistent console access
 
 From the root shell I remounted the (read-only) JFFS2 rootfs read-write and reset the root password, so the **serial console** now accepts a known password across reboots — closing the very login wall that blocked step 3, not by cracking the static hash but by replacing it once root was obtained through another path.
+
+<img width="1915" height="1024" alt="image" src="https://github.com/user-attachments/assets/fe4c7f02-5680-453e-a752-073b2be10de1" />
+
 
 ### 11. Alternative root path — `/etc/shadow` patch + reflash
 
